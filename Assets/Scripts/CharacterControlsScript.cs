@@ -1,13 +1,15 @@
+using Unity.VisualScripting;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 public class CharacterControlsScript : MonoBehaviour
 {
     //Our character controller attached to the player
     private CharacterController controller;
-    private Camera camera;
+    public Camera camera;
 
     //Floats of player stuff
     public float speed = 5f;
@@ -23,15 +25,22 @@ public class CharacterControlsScript : MonoBehaviour
     static float xAxis;
     static float zAxis;
 
+    //Bools
     private bool canSprint;
     private bool canCrouch;
     private bool isMoving;
+
+    //Look Stuff
+    public float lookSpeedX = 2.5f;
+    public float lookSpeedY = 2.5f;
+
+    public float lowerYLimit = -70.0f;
+    public float higherYLimit = 70.0f;
 
     void Start()
     {
         //Get the charatcer controller from the player body
         controller = GetComponent<CharacterController>();
-        camera = GetComponent<Camera>();
 
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
@@ -47,9 +56,13 @@ public class CharacterControlsScript : MonoBehaviour
 
     void CameraMovement()
     {
-       //Look up and down
+        //Look up and down
+        float rotationUp =- Input.GetAxis("Mouse Y") * lookSpeedY;
+        rotationUp = Mathf.Clamp(rotationUp, lowerYLimit, higherYLimit);
+        camera.transform.localEulerAngles = Vector3.up * rotationUp;
 
-       //Look left and right
+        //Look left and right
+        transform.Rotate(Vector3.right * (Input.GetAxis("Mouse X") * lookSpeedX));
        
 
     }
@@ -79,8 +92,6 @@ public class CharacterControlsScript : MonoBehaviour
             speed = normalSpeed;
         }
 
-        
-        
 
         if (Input.GetButtonDown("Jump") && controller.isGrounded)
         {
@@ -89,7 +100,7 @@ public class CharacterControlsScript : MonoBehaviour
 
         playerMovement.y += gravity * Time.deltaTime;
 
-        Vector3 move = new Vector3(xAxis, playerMovement.y, zAxis);
+        Vector3 move = new Vector3(xAxis, playerMovement.y, zAxis); 
         controller.Move(move * speed * Time.deltaTime);
     }
 

@@ -371,11 +371,11 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 430, y: 1.5, z: 291}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 829888715}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &330585547
 MonoBehaviour:
@@ -1034,8 +1034,7 @@ Transform:
   m_LocalPosition: {x: 430, y: 1.5, z: 291}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 330585546}
+  m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &829888716
@@ -1050,12 +1049,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29673217591d966449e36fe548f9932c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  camera: {fileID: 330585545}
   speed: 5
   normalSpeed: 5
   crouchSpeed: 2.5
   sprintSpeed: 10
   jumpForce: 5
-  gravity: -5
+  gravity: -9
+  lookSpeedX: 2.5
+  lookSpeedY: 2.5
+  lowerYLimit: -70
+  higherYLimit: 70
 --- !u!143 &829888717
 CharacterController:
   m_ObjectHideFlags: 0
@@ -1135,6 +1139,7 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 410087041}
+  - {fileID: 330585546}
   - {fileID: 832575519}
   - {fileID: 688133105}
   - {fileID: 829888715}
