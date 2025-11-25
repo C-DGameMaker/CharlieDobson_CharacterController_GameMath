@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.UIElements;
 
 public class CharacterControlsScript : MonoBehaviour
 {
@@ -20,6 +21,7 @@ public class CharacterControlsScript : MonoBehaviour
     public float gravity = -1f;
 
     private Vector3 playerMovement;
+    static float rotationUp = 0;
 
     //Axises
     static float xAxis;
@@ -31,41 +33,35 @@ public class CharacterControlsScript : MonoBehaviour
     private bool isMoving;
 
     //Look Stuff
-    public float lookSpeedX = 2.5f;
-    public float lookSpeedY = 2.5f;
-
-    public float lowerYLimit = -70.0f;
-    public float higherYLimit = 70.0f;
+    public float lookSpeed = 2.5f;
 
     void Start()
     {
         //Get the charatcer controller from the player body
         controller = GetComponent<CharacterController>();
 
-        Cursor.visible = false;
-        Cursor.lockState = CursorLockMode.Locked;
+        UnityEngine.Cursor.lockState = CursorLockMode.Locked;
+        UnityEngine.Cursor.visible = false;
 
         speed = 0;
     }
 
     private void Update()
     {
-        CameraMovement();
+        float mouseX = Input.GetAxis("Mouse X") * lookSpeed;
+        float mouseY = Input.GetAxis("Mouse Y") * lookSpeed;
+
+        transform.Rotate(Vector3.up * mouseX);
+        
+        rotationUp -= mouseY;
+        rotationUp = Mathf.Clamp(rotationUp, -89, 89);
+
+        camera.transform.localRotation = Quaternion.Euler(rotationUp, 0, 0);
+
         PlayerMovement();
     }
 
-    void CameraMovement()
-    {
-        //Look up and down
-        float rotationUp =- Input.GetAxis("Mouse Y") * lookSpeedY;
-        rotationUp = Mathf.Clamp(rotationUp, lowerYLimit, higherYLimit);
-        camera.transform.localEulerAngles = Vector3.up * rotationUp;
-
-        //Look left and right
-        transform.Rotate(Vector3.right * (Input.GetAxis("Mouse X") * lookSpeedX));
-       
-
-    }
+   
 
     void PlayerMovement()
     {
@@ -100,7 +96,7 @@ public class CharacterControlsScript : MonoBehaviour
 
         playerMovement.y += gravity * Time.deltaTime;
 
-        Vector3 move = new Vector3(xAxis, playerMovement.y, zAxis); 
+        Vector3 move = (transform.right * xAxis) + (transform.forward * zAxis); 
         controller.Move(move * speed * Time.deltaTime);
     }
 
