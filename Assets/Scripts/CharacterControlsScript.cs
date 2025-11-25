@@ -21,7 +21,7 @@ public class CharacterControlsScript : MonoBehaviour
     public float gravity = -1f;
 
     private Vector3 playerMovement;
-    static float rotationUp = 0;
+    private RaycastHit hit;
 
     //Axises
     static float xAxis;
@@ -34,6 +34,7 @@ public class CharacterControlsScript : MonoBehaviour
 
     //Look Stuff
     public float lookSpeed = 2.5f;
+    static float rotationUp = 0;
 
     void Start()
     {
@@ -59,6 +60,8 @@ public class CharacterControlsScript : MonoBehaviour
         camera.transform.localRotation = Quaternion.Euler(rotationUp, 0, 0);
 
         PlayerMovement();
+
+        playerMovement.y += gravity * Time.deltaTime;
     }
 
    
@@ -68,35 +71,40 @@ public class CharacterControlsScript : MonoBehaviour
         xAxis = Input.GetAxis("Horizontal");
         zAxis = Input.GetAxis("Vertical");
 
-        if(controller.isGrounded && playerMovement.y > 0)
+        if (controller.isGrounded && playerMovement.y > 0)
         {
             playerMovement.y = 0;
         }
 
-        if (Input.GetKeyDown(KeyCode.LeftControl))
+        if (Input.GetKey(KeyCode.LeftControl))
         {
             speed = crouchSpeed;
             canSprint = false;
         }
-        else if (Input.GetKeyDown(KeyCode.LeftShift))
+        else if (Input.GetKey(KeyCode.LeftShift))
         {
+            
             speed = sprintSpeed;
             canCrouch = false;
         }
         else
         {
             speed = normalSpeed;
+            canCrouch = true;
+            canSprint = true;
         }
 
+        float slopeAngle = Vector3.Angle(hit.normal, Vector3.up);
 
-        if (Input.GetButtonDown("Jump") && controller.isGrounded)
+        if (Input.GetKey(KeyCode.Space) && controller.isGrounded && slopeAngle <= controller.slopeLimit)
         {
-            playerMovement.y += Mathf.Sqrt(jumpForce * -2.0f * gravity);
+            playerMovement.y += jumpForce;
         }
 
-        playerMovement.y += gravity * Time.deltaTime;
 
-        Vector3 move = (transform.right * xAxis) + (transform.forward * zAxis); 
+
+        Vector3 move = (transform.right * xAxis) + (transform.forward * zAxis);
+        move.y = playerMovement.y;
         controller.Move(move * speed * Time.deltaTime);
     }
 
