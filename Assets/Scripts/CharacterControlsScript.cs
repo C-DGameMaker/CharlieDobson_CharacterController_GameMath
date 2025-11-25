@@ -94,14 +94,15 @@ public class CharacterControlsScript : MonoBehaviour
             canSprint = true;
         }
 
-        float slopeAngle = Vector3.Angle(hit.normal, Vector3.up);
-
-        if (Input.GetKey(KeyCode.Space) && controller.isGrounded && slopeAngle <= controller.slopeLimit)
+        if (Physics.Raycast(transform.position, Vector3.down, out hit, 1.1f))
         {
-            playerMovement.y += jumpForce;
+            float slopeAngle = Vector3.Angle(hit.normal, Vector3.up);
+
+            if (Input.GetKey(KeyCode.Space) && controller.isGrounded && slopeAngle <= controller.slopeLimit)
+            {
+                playerMovement.y = jumpForce;
+            }
         }
-
-
 
         Vector3 move = (transform.right * xAxis) + (transform.forward * zAxis);
         move.y = playerMovement.y;
