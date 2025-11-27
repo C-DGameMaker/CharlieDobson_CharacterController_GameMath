@@ -1,5 +1,4 @@
 using Unity.VisualScripting;
-using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
@@ -10,7 +9,7 @@ public class CharacterControlsScript : MonoBehaviour
 {
     //Our character controller attached to the player
     private CharacterController controller;
-    public Camera camera;
+    public Camera fpsCamera;
 
     //Floats of player stuff
     public float speed = 5f;
@@ -61,7 +60,7 @@ public class CharacterControlsScript : MonoBehaviour
         //Crouch stuff, getting the heigt in the beginning.
         normalHeight = controller.height;
 
-        cameraStand = camera.transform.localPosition;
+        cameraStand = fpsCamera.transform.localPosition;
         cameraCrouch = cameraStand + new Vector3(0, cameraOffset, 0);
 
 
@@ -83,7 +82,7 @@ public class CharacterControlsScript : MonoBehaviour
         rotationUp = Mathf.Clamp(rotationUp, lowerLookLimit, upperLookLimit);
 
         //Up and down looking stuff so cool. Sets the camera rotation rather than the player. 
-        camera.transform.localRotation = Quaternion.Euler(rotationUp, 0, 0);
+        fpsCamera.transform.localRotation = Quaternion.Euler(rotationUp, 0, 0);
 
         //Player movement stuff, setting the y to that. 
         playerJumpMovement.y += gravity * Time.deltaTime;
@@ -117,10 +116,11 @@ public class CharacterControlsScript : MonoBehaviour
         //My set speeds. Run and crouch. I just made it so if you run you can't crouch and vice versa, then reset them both to true no matter what if nothing is held. 
         if (Input.GetKey(KeyCode.LeftControl) && canCrouch == true)
         {
-            camera.transform.localPosition = Vector3.Lerp(camera.transform.localPosition, cameraCrouch, 1);
+            fpsCamera.transform.localPosition = Vector3.Lerp(fpsCamera.transform.localPosition, cameraCrouch, 1);
             controller.height = crouchHeight;
             speed = crouchSpeed;
             canSprint = false;
+            //this is so you don't look into the ground while crouched
             lowerLookLimit = 0;
         }
         else if (Input.GetKey(KeyCode.LeftShift) && canSprint == true)
@@ -130,7 +130,7 @@ public class CharacterControlsScript : MonoBehaviour
         }
         else
         {
-            camera.transform.localPosition = Vector3.Lerp(camera.transform.localPosition, cameraStand, 1);
+            fpsCamera.transform.localPosition = Vector3.Lerp(fpsCamera.transform.localPosition, cameraStand, 1);
             controller.height = normalHeight;
             speed = normalSpeed;
             canCrouch = true;
