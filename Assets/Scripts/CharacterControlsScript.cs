@@ -138,7 +138,7 @@ public class CharacterControlsScript : MonoBehaviour
             lowerLookLimit = -89;
         }
 
-        //My jump! Checks if the player is grounded and if space is pressed, it also checks if were on a steep slope. 
+        //My jump! Checks if the player is grounded and if space is pressed
         if (Input.GetKey(KeyCode.Space) && controller.isGrounded && !steepSlope)
         {
                 playerJumpMovement.y = jumpForce;
