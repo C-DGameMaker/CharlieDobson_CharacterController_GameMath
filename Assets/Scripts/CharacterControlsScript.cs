@@ -15,13 +15,21 @@ public class CharacterControlsScript : MonoBehaviour
     //Floats of player stuff
     public float speed = 5f;
     public float normalSpeed = 5f;
-    public float crouchSpeed = 2.5f;
     public float sprintSpeed = 10f;
     public float jumpForce = 5f;
     public float gravity = -1f;
 
-    private Vector3 playerMovement;
-    private RaycastHit hit;
+    //Vector3
+    private Vector3 playerJumpMovement;
+
+    //CrouchingStuff
+    public float crouchSpeed = 2.5f;
+    public float crouchHeight;
+    public float cameraOffset = -0.2f;
+    private float normalHeight;
+    private Vector3 cameraStand;
+    private Vector3 cameraCrouch;
+
 
     //Axises
     static float xAxis;
@@ -30,83 +38,119 @@ public class CharacterControlsScript : MonoBehaviour
     //Bools
     private bool canSprint;
     private bool canCrouch;
-    private bool isMoving;
+    private bool steepSlope;
 
     //Look Stuff
     public float lookSpeed = 2.5f;
     static float rotationUp = 0;
+    static float lowerLookLimit = -89;
+    static float upperLookLimit = 89;
 
     void Start()
     {
         //Get the charatcer controller from the player body
         controller = GetComponent<CharacterController>();
 
+        //I dunno why it made me put UnityEngine in front of both, but it did. I feel it was kinda stupid, but it wouldn't work otherwise.
         UnityEngine.Cursor.lockState = CursorLockMode.Locked;
         UnityEngine.Cursor.visible = false;
 
+        //Look at me, setting speed to 0
         speed = 0;
+
+        //Crouch stuff, getting the heigt in the beginning.
+        normalHeight = controller.height;
+
+        cameraStand = camera.transform.localPosition;
+        cameraCrouch = cameraStand + new Vector3(0, cameraOffset, 0);
+
+
     }
 
     private void Update()
     {
+        //Camera movement. I did try and have it in a seperate script but it was jittery and not very pretty to look at.
+
+        //Getting MouseX and MouseY axises. With speed inculded. 
         float mouseX = Input.GetAxis("Mouse X") * lookSpeed;
         float mouseY = Input.GetAxis("Mouse Y") * lookSpeed;
 
+        //Rotates the character instead of just the camera, this way the player forwards changes. 
         transform.Rotate(Vector3.up * mouseX);
         
+        //Some looking up stuff. Clamping it so you can't play upside down. 
         rotationUp -= mouseY;
-        rotationUp = Mathf.Clamp(rotationUp, -89, 89);
+        rotationUp = Mathf.Clamp(rotationUp, lowerLookLimit, upperLookLimit);
 
+        //Up and down looking stuff so cool. Sets the camera rotation rather than the player. 
         camera.transform.localRotation = Quaternion.Euler(rotationUp, 0, 0);
 
+        //Player movement stuff, setting the y to that. 
+        playerJumpMovement.y += gravity * Time.deltaTime;
         PlayerMovement();
 
-        playerMovement.y += gravity * Time.deltaTime;
+        
     }
 
    
 
     void PlayerMovement()
     {
+        //Getting more Axies, this time being x and z
         xAxis = Input.GetAxis("Horizontal");
         zAxis = Input.GetAxis("Vertical");
 
-        if (controller.isGrounded && playerMovement.y > 0)
+        //You may be asking, why make another vector 3 when you have one. It breaks if I use the other one instead of this one. 
+        Vector3 move = (transform.right * xAxis) + (transform.forward * zAxis);
+        
+
+        steepSlope = false;
+        //Using Character controller to check if the player is grounded and also checking if the y is greater than zero to set as zero.
+        if (controller.isGrounded && playerJumpMovement.y > 0)
         {
-            playerMovement.y = 0;
+            playerJumpMovement.y = 0;
         }
 
-        if (Input.GetKey(KeyCode.LeftControl))
+        //This checks if we're on a slope, espically a steep slope
+        if (!controller.isGrounded && (controller.collisionFlags & CollisionFlags.Sides) != 0) steepSlope = true;
+
+        //My set speeds. Run and crouch. I just made it so if you run you can't crouch and vice versa, then reset them both to true no matter what if nothing is held. 
+        if (Input.GetKey(KeyCode.LeftControl) && canCrouch == true)
         {
+            camera.transform.localPosition = Vector3.Lerp(camera.transform.localPosition, cameraCrouch, 1);
+            controller.height = crouchHeight;
             speed = crouchSpeed;
             canSprint = false;
+            lowerLookLimit = 0;
         }
-        else if (Input.GetKey(KeyCode.LeftShift))
+        else if (Input.GetKey(KeyCode.LeftShift) && canSprint == true)
         {
-            
             speed = sprintSpeed;
             canCrouch = false;
         }
         else
         {
+            camera.transform.localPosition = Vector3.Lerp(camera.transform.localPosition, cameraStand, 1);
+            controller.height = normalHeight;
             speed = normalSpeed;
             canCrouch = true;
             canSprint = true;
+            lowerLookLimit = -89;
         }
 
-        if (Physics.Raycast(transform.position, Vector3.down, out hit, 1.1f))
+        //My jump! Checks if the player is grounded and if space is pressed, it also checks if were on a steep slope. 
+        if (Input.GetKey(KeyCode.Space) && controller.isGrounded && !steepSlope)
         {
-            float slopeAngle = Vector3.Angle(hit.normal, Vector3.up);
-
-            if (Input.GetKey(KeyCode.Space) && controller.isGrounded && slopeAngle <= controller.slopeLimit)
-            {
-                playerMovement.y = jumpForce;
-            }
+                playerJumpMovement.y = jumpForce;
         }
 
-        Vector3 move = (transform.right * xAxis) + (transform.forward * zAxis);
-        move.y = playerMovement.y;
+
+        //This is why I needed the other vector3. If I just set it to one, then the player can float upon going up slopes. No one wants that. 
+        move.y = playerJumpMovement.y;
+
+        //Moves the player with the controller!
         controller.Move(move * speed * Time.deltaTime);
+
     }
 
 }
